@@ -6,6 +6,10 @@ gsap.registerPlugin(ScrollTrigger);
 
 const isMobile = matchMedia('(max-width: 900px)').matches;
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// When ?record=1 is in the URL, we're being captured headlessly.
+// Disable heavyweight JS effects so Chromium can render frames on time.
+const RECORD_MODE = new URLSearchParams(location.search).has('record');
+if (RECORD_MODE) document.documentElement.classList.add('is-recording');
 
 /* ---------- Page curtain + first paint ---------- */
 window.addEventListener('load', () => {
@@ -20,7 +24,7 @@ window.addEventListener('load', () => {
 
 /* ---------- Smooth scroll (Lenis + GSAP bridge) ---------- */
 let lenis = null;
-if (!reduceMotion) {
+if (!reduceMotion && !RECORD_MODE) {
   lenis = new Lenis({
     duration: 1.1,
     easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -56,7 +60,7 @@ document.querySelectorAll('[data-reveal], [data-reveal-stagger]').forEach(el => 
 
 /* ---------- Magnetic buttons ---------- */
 document.querySelectorAll('[data-magnetic]').forEach(el => {
-  if (reduceMotion) return;
+  if (reduceMotion || RECORD_MODE) return;
   const strengthX = gsap.quickTo(el, 'x', { duration: 0.6, ease: 'power3.out' });
   const strengthY = gsap.quickTo(el, 'y', { duration: 0.6, ease: 'power3.out' });
   el.addEventListener('mousemove', (e) => {
@@ -74,7 +78,7 @@ document.querySelectorAll('[data-magnetic]').forEach(el => {
 
 /* ---------- Tilt on practitioner cards ---------- */
 document.querySelectorAll('[data-tilt]').forEach(el => {
-  if (reduceMotion || isMobile) return;
+  if (reduceMotion || isMobile || RECORD_MODE) return;
   const portrait = el.querySelector('.prac__portrait');
   if (!portrait) return;
   const rx = gsap.quickTo(portrait, 'rotationX', { duration: 0.5, ease: 'power3.out' });
@@ -193,7 +197,7 @@ if (journeySection && beats.length && !isMobile) {
     trigger: journeySection,
     start: 'top top',
     end: 'bottom bottom',
-    scrub: 0.6,
+    scrub: RECORD_MODE ? true : 0.6,
     onUpdate: (self) => {
       const p = self.progress;
       if (progressBar) progressBar.parentElement.style.setProperty('--p', String(p));
