@@ -1,5 +1,6 @@
 /* =========================================================
-   Halden Derm — landing page motion
+   Halden Derm — Marylebone dentistry
+   Lenis + GSAP + ScrollTrigger. Quiet, deliberate motion.
    ========================================================= */
 
 /* ---------- Bulletproof first-paint (runs before anything else) ---------- */
@@ -33,9 +34,18 @@ const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const RECORD_MODE = new URLSearchParams(location.search).has('record');
 if (RECORD_MODE) document.documentElement.classList.add('is-recording');
 
-/* ---------- (curtain + first paint now handled by the bulletproof prologue above) ---------- */
+/* ---------- Curtain + first paint ---------- */
+window.addEventListener('DOMContentLoaded', () => {
+  requestAnimationFrame(() => {
+    document.body.classList.remove('no-scroll-yet');
+    const curtain = document.querySelector('.curtain');
+    setTimeout(() => curtain && curtain.classList.add('is-done'), 900);
+    setTimeout(() => curtain && curtain.remove(), 2200);
+    document.querySelectorAll('.hero [data-reveal], .hero [data-reveal-stagger]').forEach(el => el.classList.add('is-inview'));
+  });
+});
 
-/* ---------- Lenis smooth scroll ---------- */
+/* ---------- Lenis smooth scroll (bridged to GSAP) ---------- */
 let lenis = null;
 if (!reduceMotion && !RECORD_MODE) {
   lenis = new Lenis({
@@ -49,7 +59,7 @@ if (!reduceMotion && !RECORD_MODE) {
   gsap.ticker.lagSmoothing(0);
 }
 
-/* ---------- Hide nav on scroll down ---------- */
+/* ---------- Nav: hide on scroll down ---------- */
 const nav = document.querySelector('.nav');
 let lastY = 0;
 function navVisibility() {
@@ -68,25 +78,20 @@ const io = new IntersectionObserver((entries) => {
       io.unobserve(e.target);
     }
   });
-}, { threshold: 0.14, rootMargin: '0px 0px -8% 0px' });
+}, { threshold: 0.15, rootMargin: '0px 0px -10% 0px' });
 document.querySelectorAll('[data-reveal], [data-reveal-stagger]').forEach(el => io.observe(el));
 
 /* ---------- Magnetic buttons ---------- */
 document.querySelectorAll('[data-magnetic]').forEach(el => {
   if (reduceMotion || RECORD_MODE) return;
-  const strengthX = gsap.quickTo(el, 'x', { duration: 0.6, ease: 'power3.out' });
-  const strengthY = gsap.quickTo(el, 'y', { duration: 0.6, ease: 'power3.out' });
+  const tx = gsap.quickTo(el, 'x', { duration: 0.6, ease: 'power3.out' });
+  const ty = gsap.quickTo(el, 'y', { duration: 0.6, ease: 'power3.out' });
   el.addEventListener('mousemove', (e) => {
     const r = el.getBoundingClientRect();
-    const mx = e.clientX - (r.left + r.width / 2);
-    const my = e.clientY - (r.top + r.height / 2);
-    strengthX(mx * 0.25);
-    strengthY(my * 0.35);
+    tx((e.clientX - (r.left + r.width / 2)) * 0.22);
+    ty((e.clientY - (r.top + r.height / 2)) * 0.32);
   });
-  el.addEventListener('mouseleave', () => {
-    strengthX(0);
-    strengthY(0);
-  });
+  el.addEventListener('mouseleave', () => { tx(0); ty(0); });
 });
 
 /* ---------- Tilt on practitioner portraits ---------- */
@@ -101,8 +106,8 @@ document.querySelectorAll('[data-tilt]').forEach(el => {
     const r = portrait.getBoundingClientRect();
     const nx = (e.clientX - r.left) / r.width - 0.5;
     const ny = (e.clientY - r.top) / r.height - 0.5;
-    rx(ny * -6);
-    ry(nx * 6);
+    rx(ny * -5.5);
+    ry(nx * 5.5);
   });
   el.addEventListener('mouseleave', () => { rx(0); ry(0); });
 });
@@ -119,7 +124,7 @@ burger?.addEventListener('click', () => {
 });
 menu?.querySelectorAll('a').forEach(a => a.addEventListener('click', () => burger.click()));
 
-/* ---------- FAQ accordion ---------- */
+/* ---------- FAQ accordion (morph +/-) ---------- */
 document.querySelectorAll('.faq__item').forEach(item => {
   const btn = item.querySelector('.faq__q');
   btn.addEventListener('click', () => {
@@ -128,20 +133,18 @@ document.querySelectorAll('.faq__item').forEach(item => {
   });
 });
 
-/* ---------- Typewriter in hero card ---------- */
+/* ---------- Typewriter (hero card) ---------- */
 const twPhrases = [
-  'pigmented nevus',
-  'atopic flare',
-  'contact allergy',
-  'rosacea patterns',
-  'actinic change',
-  'seborrhoeic keratosis',
-  'melanocytic atypia',
-  'post-inflammatory pigment',
+  'invisalign planning',
+  'digital smile design',
+  'hygienist review',
+  'implant consult',
+  "child's first appointment",
+  'composite bonding',
+  'clincheck walkthrough',
 ];
 const twEl = document.getElementById('twText');
 let twI = 0;
-
 function typewriterLoop() {
   if (!twEl) return;
   const next = twPhrases[twI % twPhrases.length];
@@ -157,18 +160,19 @@ function typewriterLoop() {
         if (j >= next.length) {
           clearInterval(type);
           twI++;
-          setTimeout(typewriterLoop, 2400);
+          setTimeout(typewriterLoop, 2300);
         }
-      }, 48);
+      }, 46);
     }
-  }, 30);
+  }, 26);
 }
-setTimeout(typewriterLoop, 2000);
+setTimeout(typewriterLoop, 1800);
 
 /* ---------- Counter animation (runs once in view) ---------- */
-document.querySelectorAll('[data-counter]').forEach((el) => {
+document.querySelectorAll('.counter[data-target]').forEach(el => {
   const target = parseFloat(el.dataset.target) || 0;
-  const decimals = parseInt(el.dataset.decimals || '0', 10);
+  const suffix = el.dataset.suffix || '';
+  const useComma = el.dataset.format === 'comma';
   const co = new IntersectionObserver((entries) => {
     if (entries[0].isIntersecting) {
       co.disconnect();
@@ -178,36 +182,28 @@ document.querySelectorAll('[data-counter]').forEach((el) => {
         duration: 2.4,
         ease: 'power3.out',
         onUpdate: () => {
-          const v = obj.v;
-          if (decimals > 0) {
-            el.firstChild ? (el.childNodes[0].nodeValue = v.toFixed(decimals)) : (el.textContent = v.toFixed(decimals));
-            el.textContent = v.toFixed(decimals);
-          } else {
-            el.textContent = Math.floor(v).toLocaleString('en-GB');
-          }
+          const v = Math.floor(obj.v);
+          el.textContent = (useComma ? v.toLocaleString('en-GB') : String(v)) + suffix;
         }
       });
     }
-  }, { threshold: 0.35 });
+  }, { threshold: 0.4 });
   co.observe(el);
 });
 
-/* ---------- Journey: scroll-synced beats ---------- */
+/* ---------- Journey: autoplay video + fade-based beats (scroll-synced) ---------- */
 const journeyVideo = document.getElementById('journeyVideo');
 const journeySection = document.querySelector('.journey');
 const beats = document.querySelectorAll('.journey__beat');
 const progressBar = document.getElementById('journeyBar');
 
-if (journeyVideo) {
-  journeyVideo.play().catch(() => {});
-}
+if (journeyVideo) journeyVideo.play().catch(() => {});
 
 if (journeySection && beats.length && !isMobile) {
   beats.forEach(b => {
     b.style.opacity = '0';
     b.style.transform = 'translate(-50%, -50%) translateY(30px)';
   });
-
   ScrollTrigger.create({
     trigger: journeySection,
     start: 'top top',
@@ -216,28 +212,21 @@ if (journeySection && beats.length && !isMobile) {
     onUpdate: (self) => {
       const p = self.progress;
       if (progressBar) progressBar.parentElement.style.setProperty('--p', String(p));
-
       const n = beats.length;
       beats.forEach((b, i) => {
         const segStart = i / n;
         const segEnd = (i + 1) / n;
-        const fadeIn = segStart;
-        const fullIn = segStart + (segEnd - segStart) * 0.15;
-        const fullOut = segEnd - (segEnd - segStart) * 0.15;
-        const fadeOut = segEnd;
-
+        const fullIn = segStart + (segEnd - segStart) * 0.18;
+        const fullOut = segEnd - (segEnd - segStart) * 0.18;
         let opacity = 0, y = 30;
-        if (p >= fadeIn && p < fullIn) {
-          const t = (p - fadeIn) / (fullIn - fadeIn);
-          opacity = t;
-          y = 30 * (1 - t);
+        if (p >= segStart && p < fullIn) {
+          const t = (p - segStart) / (fullIn - segStart);
+          opacity = t; y = 30 * (1 - t);
         } else if (p >= fullIn && p <= fullOut) {
-          opacity = 1;
-          y = 0;
-        } else if (p > fullOut && p <= fadeOut) {
-          const t = (p - fullOut) / (fadeOut - fullOut);
-          opacity = 1 - t;
-          y = -20 * t;
+          opacity = 1; y = 0;
+        } else if (p > fullOut && p <= segEnd) {
+          const t = (p - fullOut) / (segEnd - fullOut);
+          opacity = 1 - t; y = -20 * t;
         }
         b.style.opacity = opacity;
         b.style.transform = `translate(-50%, -50%) translateY(${y}px)`;
@@ -264,7 +253,7 @@ if (isMobile && beats.length) {
   });
 }
 
-/* ---------- Sticky stack depth ---------- */
+/* ---------- Sticky stack subtle depth ---------- */
 if (!reduceMotion) {
   document.querySelectorAll('.stack__card').forEach((card, i, all) => {
     ScrollTrigger.create({
@@ -274,68 +263,108 @@ if (!reduceMotion) {
       onUpdate: (self) => {
         const p = self.progress;
         if (i < all.length - 1) {
-          gsap.set(card, { scale: 1 - p * 0.04, opacity: 1 - p * 0.12 });
+          gsap.set(card, { scale: 1 - p * 0.035, opacity: 1 - p * 0.1 });
         }
       }
     });
   });
 }
 
-/* ---------- Slot picker ---------- */
-(function buildSlots() {
-  const root = document.getElementById('slots');
-  if (!root) return;
-  const dayNames = ['Tue','Wed','Thu','Fri','Sat','Tue','Wed'];
-  const startDate = new Date(2026, 3, 21); // Tue 21 Apr 2026
-  const times = ['09:00','09:40','10:20','11:00','11:40','12:20','14:00','14:40','15:20','16:00','16:40'];
-  // Deterministic pseudo-random so layout is stable.
-  function rnd(seed) {
-    const x = Math.sin(seed * 9301 + 49297) * 233280;
-    return x - Math.floor(x);
+/* ---------- Slot picker (7-day) ---------- */
+(function slotPicker() {
+  const daysEl = document.getElementById('slotDays');
+  const timesEl = document.getElementById('slotTimes');
+  const summaryEl = document.getElementById('slotSummary');
+  if (!daysEl || !timesEl) return;
+
+  const dow = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const mon = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const allTimes = ['08:30', '09:30', '10:30', '11:30', '13:00', '14:00', '15:00', '16:00', '17:00'];
+
+  const today = new Date();
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    const weekday = d.getDay();
+    const isSun = weekday === 0;
+    // pseudo-random stable availability per index
+    const seed = (d.getDate() * 13 + i * 7) % allTimes.length;
+    const available = isSun ? [] :
+      allTimes.filter((_, k) => ((k + seed) % 3 !== 0)).slice(0, 4 + (i % 3));
+    days.push({ date: d, weekday, isFull: isSun || available.length === 0, available });
   }
-  for (let d = 0; d < 7; d++) {
-    const date = new Date(startDate);
-    date.setDate(startDate.getDate() + d);
-    const day = document.createElement('div');
-    day.className = 'slots__day';
-    day.innerHTML = `
-      <div class="slots__day-head">
-        <span class="slots__day-name">${dayNames[d]}</span>
-        <span class="slots__day-num">${String(date.getDate()).padStart(2,'0')}</span>
-      </div>
-    `;
-    // pick 3 time slots per day
-    const picks = [];
-    while (picks.length < 3) {
-      const idx = Math.floor(rnd(d * 13 + picks.length * 7) * times.length);
-      if (!picks.includes(idx)) picks.push(idx);
-    }
-    picks.sort((a,b) => a - b);
-    picks.forEach((idx, k) => {
-      const t = times[idx];
-      const taken = rnd(d * 17 + k * 31) < 0.6;
+
+  let activeIdx = days.findIndex(d => !d.isFull);
+  if (activeIdx < 0) activeIdx = 0;
+  let activeTime = null;
+
+  function renderDays() {
+    daysEl.innerHTML = '';
+    days.forEach((d, i) => {
       const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'slot';
-      btn.textContent = t;
-      btn.setAttribute('data-taken', taken ? 'true' : 'false');
-      if (!taken) {
+      btn.className = 'slot-day' + (i === activeIdx ? ' is-active' : '') + (d.isFull ? ' is-full' : '');
+      btn.innerHTML = `
+        <span class="slot-day__dow">${dow[d.weekday]}</span>
+        <span class="slot-day__num">${d.date.getDate()}</span>
+        <span class="slot-day__count">${d.isFull ? 'Closed' : d.available.length + ' open'}</span>
+      `;
+      if (!d.isFull) {
         btn.addEventListener('click', () => {
-          const dd = date.toDateString();
-          const subject = encodeURIComponent(`Booking request — ${dd} at ${t}`);
-          const body = encodeURIComponent(
-            `Hello,\n\nI'd like to book the ${t} slot on ${dd} for a dermatology consultation.\n\nFull name:\nDate of birth:\nPhone:\nReason for visit:\nInsurer (if any):\n\nThank you.`
-          );
-          window.location.href = `mailto:hello@haldenderm.com?subject=${subject}&body=${body}`;
+          activeIdx = i;
+          activeTime = null;
+          renderDays();
+          renderTimes();
+          updateSummary();
         });
       }
-      day.appendChild(btn);
+      daysEl.appendChild(btn);
     });
-    root.appendChild(day);
   }
+
+  function renderTimes() {
+    timesEl.innerHTML = '';
+    const d = days[activeIdx];
+    if (!d || d.isFull) {
+      const span = document.createElement('span');
+      span.className = 'slot-time is-empty';
+      span.textContent = 'Closed — pick another day';
+      timesEl.appendChild(span);
+      return;
+    }
+    d.available.forEach(t => {
+      const btn = document.createElement('button');
+      btn.className = 'slot-time' + (t === activeTime ? ' is-active' : '');
+      btn.textContent = t;
+      btn.addEventListener('click', () => {
+        activeTime = t;
+        renderTimes();
+        updateSummary();
+      });
+      timesEl.appendChild(btn);
+    });
+  }
+
+  function updateSummary() {
+    if (!summaryEl) return;
+    const d = days[activeIdx];
+    if (!d) { summaryEl.textContent = 'Pick a day above'; summaryEl.classList.remove('is-selected'); return; }
+    const label = `${dow[d.weekday]} ${d.date.getDate()} ${mon[d.date.getMonth()]}`;
+    if (activeTime) {
+      summaryEl.innerHTML = `Holding <strong>${label} · ${activeTime}</strong> — confirm below.`;
+      summaryEl.classList.add('is-selected');
+    } else {
+      summaryEl.innerHTML = `<strong>${label}</strong> · choose a time`;
+      summaryEl.classList.add('is-selected');
+    }
+  }
+
+  renderDays();
+  renderTimes();
+  updateSummary();
 })();
 
-/* ---------- Smooth anchor scrolling ---------- */
+/* ---------- Smooth anchor scrolling (Lenis-aware) ---------- */
 document.querySelectorAll('a[href^="#"]').forEach(a => {
   a.addEventListener('click', (e) => {
     const id = a.getAttribute('href');
@@ -348,6 +377,6 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   });
 });
 
-/* ---------- Refresh ScrollTrigger after fonts settle ---------- */
+/* ---------- Refresh ScrollTrigger after fonts/images settle ---------- */
 window.addEventListener('load', () => setTimeout(() => ScrollTrigger.refresh(), 400));
 if (document.fonts?.ready) document.fonts.ready.then(() => setTimeout(() => ScrollTrigger.refresh(), 200));
