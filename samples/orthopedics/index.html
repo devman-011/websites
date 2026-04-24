@@ -27,6 +27,28 @@
   </div>
 </div>
 
+
+<script>
+/* Inline fail-safe: unlock scroll + lift the loading curtain no matter what.
+   Does not depend on main.js, CDN scripts, or the video loading. */
+(function () {
+  function lift() {
+    document.body.classList.remove('no-scroll-yet');
+    var c = document.querySelector('.curtain');
+    if (c) {
+      setTimeout(function () { c.classList.add('is-done'); }, 900);
+      setTimeout(function () { if (c.parentNode) c.parentNode.removeChild(c); }, 2200);
+    }
+    var r = document.querySelectorAll('.hero [data-reveal], .hero [data-reveal-stagger]');
+    for (var i = 0; i < r.length; i++) r[i].classList.add('is-inview');
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', lift, { once: true });
+    setTimeout(lift, 2200);
+  } else { lift(); }
+})();
+</script>
+
 <!-- Floating glass nav pill -->
 <header class="nav" role="banner">
   <a href="#top" class="nav__brand" aria-label="Drayton Bone & Joint home">
