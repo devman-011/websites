@@ -10,7 +10,7 @@ const RECORD_MODE = new URLSearchParams(location.search).has('record');
 if (RECORD_MODE) document.documentElement.classList.add('is-recording');
 
 /* ---------- Page curtain ---------- */
-window.addEventListener('load', () => {
+window.addEventListener('DOMContentLoaded', () => {
   requestAnimationFrame(() => {
     document.body.classList.remove('no-scroll-yet');
     const curtain = document.querySelector('.curtain');
