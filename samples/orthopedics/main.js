@@ -1,7 +1,31 @@
 /* =========================================================
    Drayton Bone & Joint — landing page motion
    ========================================================= */
-gsap.registerPlugin(ScrollTrigger);
+
+/* ---------- Bulletproof first-paint (runs before anything else) ---------- */
+(function () {
+  function lift() {
+    try { document.body.classList.remove('no-scroll-yet'); } catch (e) {}
+    var c = document.querySelector('.curtain');
+    if (c) {
+      setTimeout(function () { c.classList.add('is-done'); }, 900);
+      setTimeout(function () { if (c.parentNode) c.parentNode.removeChild(c); }, 2200);
+    }
+    try {
+      document.querySelectorAll('.hero [data-reveal], .hero [data-reveal-stagger]')
+        .forEach(function (el) { el.classList.add('is-inview'); });
+    } catch (e) {}
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', lift, { once: true });
+    // belt-and-braces: if DCL is somehow slow, force lift after 2.2s
+    setTimeout(lift, 2200);
+  } else {
+    lift();
+  }
+})();
+
+try { if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') gsap.registerPlugin(ScrollTrigger); } catch (e) { console.warn('gsap.registerPlugin failed', e); }
 
 const isMobile = matchMedia('(max-width: 960px)').matches;
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;

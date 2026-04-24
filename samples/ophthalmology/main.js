@@ -2,23 +2,38 @@
    Aperture Eye Clinic — motion & interactions
    ========================================================= */
 
-gsap.registerPlugin(ScrollTrigger);
+/* ---------- Bulletproof first-paint (runs before anything else) ---------- */
+(function () {
+  function lift() {
+    try { document.body.classList.remove('no-scroll-yet'); } catch (e) {}
+    var c = document.querySelector('.curtain');
+    if (c) {
+      setTimeout(function () { c.classList.add('is-done'); }, 900);
+      setTimeout(function () { if (c.parentNode) c.parentNode.removeChild(c); }, 2200);
+    }
+    try {
+      document.querySelectorAll('.hero [data-reveal], .hero [data-reveal-stagger]')
+        .forEach(function (el) { el.classList.add('is-inview'); });
+    } catch (e) {}
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', lift, { once: true });
+    // belt-and-braces: if DCL is somehow slow, force lift after 2.2s
+    setTimeout(lift, 2200);
+  } else {
+    lift();
+  }
+})();
+
+
+try { if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') gsap.registerPlugin(ScrollTrigger); } catch (e) { console.warn('gsap.registerPlugin failed', e); }
 
 const isMobile = matchMedia('(max-width: 960px)').matches;
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const RECORD_MODE = new URLSearchParams(location.search).has('record');
 if (RECORD_MODE) document.documentElement.classList.add('is-recording');
 
-/* ---------- Page curtain ---------- */
-window.addEventListener('DOMContentLoaded', () => {
-  requestAnimationFrame(() => {
-    document.body.classList.remove('no-scroll-yet');
-    const curtain = document.querySelector('.curtain');
-    setTimeout(() => curtain && curtain.classList.add('is-done'), 900);
-    setTimeout(() => curtain && curtain.remove(), 2200);
-    document.querySelectorAll('.hero [data-reveal], .hero [data-reveal-stagger]').forEach(el => el.classList.add('is-inview'));
-  });
-});
+/* ---------- (curtain + first paint now handled by the bulletproof prologue above) ---------- */
 
 /* ---------- Smooth scroll (Lenis + GSAP bridge) ---------- */
 let lenis = null;
