@@ -24,9 +24,9 @@ ul, ol { list-style: none; padding: 0; margin: 0; }
   --accent-2:#C8A87E;
   --oak:     #D8C4A3;
 
-  --f-serif: "Instrument Serif", "Times New Roman", serif;
-  --f-sans:  "Satoshi", ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
-  --f-mono:  "Geist Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+  --f-serif: 'DM Serif Display', 'Times New Roman', serif;
+  --f-sans:  'DM Sans', ui-sans-serif, system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+  --f-mono:  'IBM Plex Mono', ui-monospace, 'Menlo', monospace;
 
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-soft: cubic-bezier(0.32, 0.72, 0, 1);

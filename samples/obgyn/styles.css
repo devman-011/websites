@@ -24,8 +24,8 @@ ul, ol { list-style: none; padding: 0; margin: 0; }
   --blush:   #E8D5C5;
 
   --f-display: "Fraunces", "Cormorant Garamond", "Times New Roman", serif;
-  --f-sans:    "Satoshi", ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
-  --f-mono:    "Geist Mono", ui-monospace, "JetBrains Mono", "Menlo", monospace;
+  --f-sans:  'Manrope', ui-sans-serif, system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+  --f-mono:  'Space Mono', ui-monospace, 'Menlo', monospace;
 
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-soft: cubic-bezier(0.32, 0.72, 0, 1);

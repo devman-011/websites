@@ -27,9 +27,9 @@ ul, ol { list-style: none; padding: 0; margin: 0; }
   --brass-glow: rgba(184, 136, 62, 0.35);
   --brass-soft: rgba(184, 136, 62, 0.14);
 
-  --f-sans:  "Geist", ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
-  --f-serif: "Fraunces", "Times New Roman", serif;
-  --f-mono:  "Geist Mono", ui-monospace, "JetBrains Mono", "Menlo", monospace;
+  --f-sans:  'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+  --f-serif: 'EB Garamond', 'Times New Roman', serif;
+  --f-mono:  'Fira Code', ui-monospace, 'Menlo', monospace;
 
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-soft: cubic-bezier(0.32, 0.72, 0, 1);
